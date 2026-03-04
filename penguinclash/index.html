@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Penguin Clash</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Three.js renders here (appended by JS) -->
+
+  <!-- 2D overlay: name labels + HUD + countdown -->
+  <canvas id="label-canvas"></canvas>
+
+  <!-- In-game title bar (shown during gameplay) -->
+  <div id="game-title-bar">Penguin Clash</div>
+
+  <div id="ui">
+
+    <!-- Start screen -->
+    <div id="screen-start" class="screen active">
+      <h1 class="game-title">Penguin Clash</h1>
+      <p class="subtitle">Last penguin standing wins</p>
+      <div class="controls-hint">WASD / Arrow Keys to move &nbsp;·&nbsp; Ram others off the ice</div>
+      <button id="btn-start" class="btn-primary">Play</button>
+      <p class="credits">A game by Erik Valle</p>
+    </div>
+
+    <!-- Round end screen -->
+    <div id="screen-roundend" class="screen">
+      <h2 id="roundend-title"></h2>
+      <p id="roundend-sub"></p>
+      <button id="btn-replay" class="btn-primary">Play Again</button>
+      <p class="credits">A game by Erik Valle</p>
+    </div>
+
+  </div>
+
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js" } }
+  </script>
+  <script type="module" src="game.js"></script>
+
+</body>
+</html>

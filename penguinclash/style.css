@@ -1,0 +1,165 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #030a14;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  overflow: hidden;
+}
+
+/* ─── Three.js renderer (appended to body by JS) ────────────────────────── */
+
+#game-renderer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+/* ─── 2D overlay canvas (labels, HUD, countdown) ────────────────────────── */
+
+#label-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+
+/* ─── In-game title bar ──────────────────────────────────────────────────── */
+
+#game-title-bar {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  padding: 0.55rem 2.2rem;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180, 215, 255, 0.45);
+  background: rgba(3, 10, 22, 0.55);
+  border-bottom: 1px solid rgba(90, 160, 255, 0.10);
+  border-left: 1px solid rgba(90, 160, 255, 0.08);
+  border-right: 1px solid rgba(90, 160, 255, 0.08);
+  border-radius: 0 0 12px 12px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+
+/* ─── UI overlay ─────────────────────────────────────────────────────────── */
+
+#ui {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  pointer-events: all;
+  text-align: center;
+  background: rgba(3, 10, 22, 0.86);
+  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  border: 1px solid rgba(90, 160, 255, 0.14);
+  border-radius: 22px;
+  padding: 3rem 4.5rem;
+  box-shadow: 0 8px 60px rgba(0,0,0,0.6);
+}
+
+.screen.active {
+  display: flex;
+}
+
+/* ─── Typography ─────────────────────────────────────────────────────────── */
+
+.game-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 3.2rem;
+  color: #e8f4ff;
+  letter-spacing: -1.5px;
+  line-height: 1;
+}
+
+.subtitle {
+  color: rgba(180, 215, 255, 0.6);
+  font-size: 1.05rem;
+  font-weight: 400;
+}
+
+.controls-hint {
+  padding: 0.45rem 1.4rem;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(180, 215, 255, 0.45);
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+}
+
+.credits {
+  color: rgba(180, 215, 255, 0.28);
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  margin-top: 0.2rem;
+}
+
+/* ─── Button ─────────────────────────────────────────────────────────────── */
+
+.btn-primary {
+  margin-top: 0.4rem;
+  padding: 0.72rem 3.2rem;
+  background: linear-gradient(140deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #fff;
+  border: none;
+  border-radius: 60px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 24px rgba(59, 130, 246, 0.38);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.55);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* ─── Round-end screen ───────────────────────────────────────────────────── */
+
+#roundend-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #e8f4ff;
+  letter-spacing: -1px;
+}
+
+#roundend-sub {
+  color: rgba(180, 215, 255, 0.6);
+  font-size: 1rem;
+}
