@@ -9,7 +9,7 @@ html { scroll-behavior: smooth; }
 body {
   background: #0d0a1e;
   color: #f0eaff;
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: 'Nunito', system-ui, sans-serif;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -27,9 +27,9 @@ header {
 }
 
 .wordmark {
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: clamp(3rem, 9vw, 6rem);
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 700;
+  font-size: clamp(3.2rem, 9vw, 6.5rem);
   letter-spacing: -0.03em;
   line-height: 1;
   color: #f0eaff;
@@ -142,7 +142,7 @@ main {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-family: 'Syne', sans-serif;
+  font-family: 'Fredoka', sans-serif;
   font-size: 3rem;
   font-weight: 800;
   color: rgba(167, 139, 250, 0.15);
@@ -158,9 +158,9 @@ main {
 }
 
 .info h2 {
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: 1.2rem;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 700;
+  font-size: 1.25rem;
   letter-spacing: -0.02em;
   color: #f0eaff;
 }
