@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spider Man — Eriks Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js" } }
+  </script>
+  <script type="module" src="game.js"></script>
+</head>
+<body>
+  <canvas id="c"></canvas>
+
+  <!-- Start Screen -->
+  <div id="start-screen" class="overlay">
+    <div class="overlay-content">
+      <h1 class="title">SPIDER<span>MAN</span></h1>
+      <p class="subtitle">Swing through the city</p>
+      <button id="btn-play" class="btn">Click to Play</button>
+      <p class="credit">A game by Erik Valle</p>
+    </div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div id="gameover-screen" class="overlay hidden">
+    <div class="overlay-content">
+      <h1 class="title title--over">GAME<span>OVER</span></h1>
+      <p class="score-line">Distance: <span id="final-score">0</span>m</p>
+      <button id="btn-retry" class="btn">Click to Retry</button>
+      <p class="credit">A game by Erik Valle</p>
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div id="hud-score">0m</div>
+  </div>
+</body>
+</html>
