@@ -22,22 +22,49 @@ const _camGoal  = new THREE.Vector3(0, 300, 320);
 const _lookGoal = new THREE.Vector3(0, 10, 0);
 const _currentLook = new THREE.Vector3(0, 10, 0);
 
+const CAM_BACK   = 220;
+const CAM_HEIGHT = 160;
+
+// _camYaw is the orbit angle of the camera around the player (direction FROM player TO camera).
+// Camera-relative controls rotate player input by this angle so W always moves away from camera.
+let _camYaw = Math.PI * 1.5; // start behind the player (player faces PI/2, so camera at PI/2+PI)
+
+function snapCameraToPlayer() {
+  const player = penguins.find(p => p.isPlayer);
+  if (!player) return;
+  _camYaw = player.angle + Math.PI;
+  const px = player.x - CX, pz = player.y - CY;
+  camera.position.set(px + Math.cos(_camYaw) * CAM_BACK, CAM_HEIGHT, pz + Math.sin(_camYaw) * CAM_BACK);
+  _currentLook.set(px, 10, pz);
+  camera.lookAt(_currentLook);
+}
+
 function updateCamera() {
   const player = penguins.find(p => p.isPlayer);
 
   if ((gameState === 'playing' || gameState === 'countdown') && player?.alive) {
-    const px = player.x - CX;
-    const pz = player.y - CY;
-    // Fixed offset — same angle as the original overview, just centred on the player
-    _camGoal.set(px, 310, pz + 320);
+    const px = player.x - CX, pz = player.y - CY;
+
+    // Smoothly rotate the orbit angle toward directly behind the player (shortest arc).
+    // Only chase the player's facing angle while they're actually moving.
+    if (player.speed > 0.5) {
+      const targetYaw = player.angle + Math.PI;
+      let diff = targetYaw - _camYaw;
+      while (diff >  Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      _camYaw += diff * 0.08;
+    }
+
+    camera.position.set(px + Math.cos(_camYaw) * CAM_BACK, CAM_HEIGHT, pz + Math.sin(_camYaw) * CAM_BACK);
     _lookGoal.set(px, 10, pz);
+    _currentLook.lerp(_lookGoal, 0.15);
   } else {
     _camGoal.set(0, 300, 320);
+    camera.position.lerp(_camGoal, 0.05);
     _lookGoal.set(0, 10, 0);
+    _currentLook.lerp(_lookGoal, 0.08);
   }
 
-  camera.position.lerp(_camGoal, 0.08);
-  _currentLook.lerp(_lookGoal, 0.10);
   camera.lookAt(_currentLook);
 }
 
@@ -431,75 +458,122 @@ function makePenguinMesh(colorHex) {
   const r      = P_R;
   const color  = parseInt(colorHex.replace('#', ''), 16);
 
-  const blackMat    = new THREE.MeshLambertMaterial({ color: 0x111111 });
-  const bellyMat    = new THREE.MeshLambertMaterial({ color: 0xeef0f0 });
-  const faceMat     = new THREE.MeshLambertMaterial({ color: 0xe2e6e6 });
-  const eyeWhiteMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
-  const pupilMat    = new THREE.MeshLambertMaterial({ color: 0x0d0d0d });
-  const beakMat     = new THREE.MeshLambertMaterial({ color: 0xf5a623 });
+  // --- Materials ---
+  const blackMat    = new THREE.MeshPhongMaterial({ color: 0x1a1a2e, shininess: 30 });
+  const bellyMat    = new THREE.MeshPhongMaterial({ color: 0xf0f0f0, shininess: 20 });
+  const faceMat     = new THREE.MeshPhongMaterial({ color: 0xf0f0f0, shininess: 15 });
+  const eyeWhiteMat = new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 60 });
+  const pupilMat    = new THREE.MeshPhongMaterial({ color: 0x050505, shininess: 80 });
+  const beakMat     = new THREE.MeshPhongMaterial({ color: 0xe8922d, shininess: 40 });
+  const footMat     = new THREE.MeshPhongMaterial({ color: 0xe8922d, shininess: 30 });
+  const accentMat   = new THREE.MeshPhongMaterial({ color, shininess: 50 });
 
-  // Body (cylinder, tapered slightly)
+  // --- Body (egg-shaped sphere) ---
   const body = new THREE.Mesh(
-    new THREE.CylinderGeometry(r * 0.55, r * 0.65, r * 1.8, 16),
+    new THREE.SphereGeometry(r * 0.65, 24, 24),
     blackMat
   );
-  body.position.set(0, r * 0.9, 0);
+  body.scale.set(1.0, 1.4, 0.9);
+  body.position.set(0, r * 0.92, 0);
   group.add(body);
 
-  // Belly — full sphere sitting on the front surface of the body
-  const belly = new THREE.Mesh(new THREE.SphereGeometry(r * 0.56, 16, 16), bellyMat);
-  belly.scale.set(0.88, 1.45, 1.0);
-  belly.position.set(0, r * 0.80, r * 0.56);
+  // --- Belly (white front patch) ---
+  const belly = new THREE.Mesh(new THREE.SphereGeometry(r * 0.58, 24, 24), bellyMat);
+  belly.scale.set(0.78, 1.30, 0.65);
+  belly.position.set(0, r * 0.85, r * 0.40);
   group.add(belly);
 
-  // Head
-  const head = new THREE.Mesh(new THREE.SphereGeometry(r * 0.55, 16, 16), blackMat);
-  head.position.set(0, r * 1.95, 0);
+  // --- Tail (small nub) ---
+  const tail = new THREE.Mesh(
+    new THREE.SphereGeometry(r * 0.13, 10, 10),
+    blackMat
+  );
+  tail.scale.set(0.6, 0.5, 1.0);
+  tail.position.set(0, r * 0.28, -r * 0.55);
+  group.add(tail);
+
+  // --- Head ---
+  const head = new THREE.Mesh(new THREE.SphereGeometry(r * 0.48, 24, 24), blackMat);
+  head.scale.set(1.0, 0.95, 0.92);
+  head.position.set(0, r * 1.85, 0);
   group.add(head);
 
-  // Face patch — full sphere on the front of the head
-  const face = new THREE.Mesh(new THREE.SphereGeometry(r * 0.36, 16, 16), faceMat);
-  face.position.set(0, r * 1.92, r * 0.52);
+  // --- Face patch (single smooth white area on front of head) ---
+  const face = new THREE.Mesh(new THREE.SphereGeometry(r * 0.38, 20, 20), faceMat);
+  face.scale.set(0.95, 0.95, 0.6);
+  face.position.set(0, r * 1.84, r * 0.48);
   group.add(face);
 
-  // Eyes — white sclera
-  const eyeGeo = new THREE.SphereGeometry(r * 0.11, 8, 8);
+  // --- Eyes ---
+  const eyeGeo = new THREE.SphereGeometry(r * 0.11, 12, 12);
   const eyeL   = new THREE.Mesh(eyeGeo, eyeWhiteMat);
   const eyeR   = new THREE.Mesh(eyeGeo, eyeWhiteMat);
-  eyeL.position.set(-r * 0.20, r * 2.0,  r * 0.88);
-  eyeR.position.set( r * 0.20, r * 2.0,  r * 0.88);
+  eyeL.position.set(-r * 0.20, r * 1.95, r * 0.57);
+  eyeR.position.set( r * 0.20, r * 1.95, r * 0.57);
   group.add(eyeL, eyeR);
 
-  // Pupils
-  const pupilGeo = new THREE.SphereGeometry(r * 0.058, 8, 8);
+  // --- Pupils ---
+  const pupilGeo = new THREE.SphereGeometry(r * 0.058, 10, 10);
   const pupilL   = new THREE.Mesh(pupilGeo, pupilMat);
   const pupilR   = new THREE.Mesh(pupilGeo, pupilMat);
-  pupilL.position.set(-r * 0.20, r * 2.0,  r * 0.91);
-  pupilR.position.set( r * 0.20, r * 2.0,  r * 0.91);
+  pupilL.position.set(-r * 0.18, r * 1.96, r * 0.63);
+  pupilR.position.set( r * 0.18, r * 1.96, r * 0.63);
   group.add(pupilL, pupilR);
 
-  // Beak (cone pointing +Z)
+  // --- Eye shine ---
+  const shineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const shineGeo = new THREE.SphereGeometry(r * 0.028, 6, 6);
+  const shineL   = new THREE.Mesh(shineGeo, shineMat);
+  const shineR   = new THREE.Mesh(shineGeo, shineMat);
+  shineL.position.set(-r * 0.16, r * 1.98, r * 0.65);
+  shineR.position.set( r * 0.16, r * 1.98, r * 0.65);
+  group.add(shineL, shineR);
+
+  // --- Beak (single cone, wider and flatter) ---
   const beak = new THREE.Mesh(
-    new THREE.ConeGeometry(r * 0.12, r * 0.30, 8),
+    new THREE.ConeGeometry(r * 0.10, r * 0.26, 8),
     beakMat
   );
   beak.rotation.x = -Math.PI / 2;
-  beak.position.set(0, r * 1.88, r * 0.96);
+  beak.scale.set(1.4, 1.0, 0.55);
+  beak.position.set(0, r * 1.82, r * 0.79);
   group.add(beak);
 
-  // Left flipper
-  const flipL = new THREE.Mesh(new THREE.SphereGeometry(r * 0.28, 8, 8), blackMat);
-  flipL.scale.set(0.42, 1.5, 0.32);
-  flipL.rotation.z = 0.3;
-  flipL.position.set(-r * 0.84, r * 0.88, 0);
+  // --- Flippers ---
+  const flipGeo = new THREE.SphereGeometry(r * 0.28, 12, 12);
+
+  const flipL = new THREE.Mesh(flipGeo, blackMat);
+  flipL.scale.set(0.30, 1.5, 0.40);
+  flipL.rotation.z = 0.35;
+  flipL.position.set(-r * 0.72, r * 0.90, 0);
   group.add(flipL);
 
-  // Right flipper
-  const flipR = new THREE.Mesh(new THREE.SphereGeometry(r * 0.28, 8, 8), blackMat);
-  flipR.scale.set(0.42, 1.5, 0.32);
-  flipR.rotation.z = -0.3;
-  flipR.position.set( r * 0.84, r * 0.88, 0);
+  const flipR = new THREE.Mesh(flipGeo, blackMat);
+  flipR.scale.set(0.30, 1.5, 0.40);
+  flipR.rotation.z = -0.35;
+  flipR.position.set(r * 0.72, r * 0.90, 0);
   group.add(flipR);
+
+  // --- Feet (flat orange ovals) ---
+  const footGeo = new THREE.SphereGeometry(r * 0.16, 10, 8);
+
+  const footL = new THREE.Mesh(footGeo, footMat);
+  footL.scale.set(0.9, 0.25, 1.3);
+  footL.position.set(-r * 0.25, r * 0.02, r * 0.18);
+  group.add(footL);
+
+  const footR = new THREE.Mesh(footGeo, footMat);
+  footR.scale.set(0.9, 0.25, 1.3);
+  footR.position.set(r * 0.25, r * 0.02, r * 0.18);
+  group.add(footR);
+
+  // --- Team color belly band (cylinder wrapped around lower body) ---
+  const band = new THREE.Mesh(
+    new THREE.CylinderGeometry(r * 0.58, r * 0.62, r * 0.14, 20),
+    accentMat
+  );
+  band.position.set(0, r * 1.52, 0);
+  group.add(band);
 
   return group;
 }
@@ -592,8 +666,14 @@ class Penguin {
 
     const len = Math.hypot(ax, ay);
     if (len > 0) {
-      this.vx += (ax / len) * PLAYER_ACCEL;
-      this.vy += (ay / len) * PLAYER_ACCEL;
+      // Rotate input by camera yaw so controls are always relative to the camera.
+      // W = forward (away from camera), D = right from camera's view, etc.
+      const θ = _camYaw - Math.PI / 2;
+      const cosθ = Math.cos(θ), sinθ = Math.sin(θ);
+      const wx = (ax * cosθ - ay * sinθ) / len;
+      const wy = (ax * sinθ + ay * cosθ) / len;
+      this.vx += wx * PLAYER_ACCEL;
+      this.vy += wy * PLAYER_ACCEL;
       this._clampSpeed(MAX_SPEED);
     }
   }
@@ -886,6 +966,7 @@ function startNextRound() {
   roundNum++;
   document.getElementById('game-title-bar').textContent = `Penguin Clash — Round ${roundNum} / ${TOTAL_ROUNDS}`;
   initPenguins();
+  snapCameraToPlayer();
   countdown     = 3;
   countdownTime = 1000;
   gameState     = 'countdown';
@@ -915,6 +996,7 @@ function startGame() {
   document.getElementById('game-title-bar').textContent = `Penguin Clash — Round 1 / ${TOTAL_ROUNDS}`;
   startMusic();
   initPenguins();
+  snapCameraToPlayer();
   countdown     = 3;
   countdownTime = 1000;
   gameState     = 'countdown';
